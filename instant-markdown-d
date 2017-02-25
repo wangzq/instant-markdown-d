@@ -91,6 +91,7 @@ function httpHandler(req, res) {
   switch(req.method)
   {
     case 'GET':
+      console.log("GET: " + req.url);
       // Example: /my-repo/raw/master/sub-dir/some.png
       var githubUrl = req.url.match(/\/[^\/]+\/raw\/[^\/]+\/(.+)/);
       if (githubUrl) {
@@ -103,7 +104,8 @@ function httpHandler(req, res) {
       }
       var githubUrlRelative = req.url.match(/(.+(?:\.png|\.jpg|\.gif)$)/);
        if (githubUrlRelative) {
-          // Serve the file out of the current working directory
+         // Serve the file out of the current working directory
+         console.log("Returning local image file " + githubUrlRelative[1] + " from " + cwd);
          send(req, githubUrlRelative[1])
           .root(cwd)
           .pipe(res);
@@ -140,7 +142,10 @@ function httpHandler(req, res) {
     
     case 'POST':
       // use POST to change the current working directory
-      readAllInput(req, function(body) { cwd = body; });
+      readAllInput(req, function(body) { 
+        console.log("Setting working directory to " + body);
+        cwd = body
+      });
       res.writeHead(200);
       res.end();
       break;

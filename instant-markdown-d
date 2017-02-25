@@ -35,6 +35,8 @@ var md = new MarkdownIt({
   }
 });
 
+var cwd = process.cwd();
+
 var lastWrittenMarkdown = '';
 function writeMarkdown(body) {
   lastWrittenMarkdown = md.render(body);
@@ -99,6 +101,14 @@ function httpHandler(req, res) {
          .pipe(res);
         return;
       }
+      var githubUrlRelative = req.url.match(/(.+(?:\.png|\.jpg|\.gif)$)/);
+       if (githubUrlRelative) {
+          // Serve the file out of the current working directory
+         send(req, githubUrlRelative[1])
+          .root(cwd)
+          .pipe(res);
+         return;
+       }
 
       var isIndexFile = /^\/(index\.html)?(\?|$)/.test(req.url);
       addSecurityHeaders(req, res, isIndexFile);
@@ -124,6 +134,13 @@ function httpHandler(req, res) {
 
     case 'PUT':
       readAllInput(req, writeMarkdown);
+      res.writeHead(200);
+      res.end();
+      break;
+    
+    case 'POST':
+      // use POST to change the current working directory
+      readAllInput(req, function(body) { cwd = body; });
       res.writeHead(200);
       res.end();
       break;
